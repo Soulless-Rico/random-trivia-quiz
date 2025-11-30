@@ -1,34 +1,54 @@
+const questionContainer = document.getElementById('question-container');
 
-
-async function fetchQuestions() {
-    const response = await fetch("https://opentdb.com/api.php?amount=1");
-
+async function fetctQuestions() {
+    const response = await fetch('https://opentdb.com/api.php?amount=10');  
     if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`)
+        throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     const data = await response.json();
-    const result = data.results[0];
+    switch (data.response_code) {
+        case 0:
+            break;
+        case 1:
+            throw new Error('API Error: No results could be found for your query.');
+        case 2:
+            throw new Error('API Error: Invalid parameter was supplied.');
+        case 3:
+            throw new Error('API Error: Token not found.');
+        case 4:
+            throw new Error('API Error: Token empty/expired.');
+        default:
+            throw new Error(`API Error: Unknown response code: ${data.response_code}`);
+    }
 
-    const difficulty = data.results[0].difficulty;
-    const category = data.results[0].category;
-    const question = data.results[0].question;
-
-    const answers = [...result.incorrect_answers, result.correct_answer];
-
-
-
-const container = document.getElementById("quiz");
-container.innerHTML = `
-    <h2>Difficulty: ${difficulty}</h2>
-    <h2>Category: ${category}</h2>
-    <h2>Question: ${question}</h2>
-    <h2>Answers: ${answers}</h2>
-`;
-
-
-
+    return data;
 }
 
+async function loadQuestions() {
+    try {
+        const questions = await fetchQuestions();
+        console.log(`Success! Loaded questions: ${questions}}`);
 
-fetchQuestions()
+        const questionsArray = questions.results;
+        if (questionsArray.lenght > 0) {
+            throw new Error('Questions array is empty.')
+        }
+
+    } catch (error) {
+        console.error(`An error occured during data loading: ${error}`);
+    }
+}
+
+function decodeHTML(html) {
+    /**
+     * Takes a string with HTML entities (like &quot;) and converts them to 
+     * their corresponding characters (like ").
+     */
+    const text = document.createElement('textarea');
+    text.innerHTML = html;
+
+    return text.value;
+}
+
+loadQuestions();
