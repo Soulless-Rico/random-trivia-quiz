@@ -8,14 +8,28 @@
     <title>Qviz</title>
     
     <script src="script.js" defer></script>
+
+    <link rel="stylesheet" href="theme.css">
 </head>
 
 <body>
-    <h1>Random >Trivia Questions</h1>
 
-    <div id="quiz-container">
-        <p>Loading questions...</p>
+    <div class="container">
+        
+        <header class="header">
+            <div class="sigma-title">
+                <h1>Random Trivia Quiz</h1>
+            </div>
+            <p class="tagline">Can you answer all of em?</p>
+        </header>
+
+        <div id="loading-state" class="loading-state">
+            <div class="sigma-spinner"></div>
+            <p>Initializing connection protocol...</p>
+        </div>
+
+        <div id="quiz-container" class="quiz-container hidden"></div>
     </div>
-    
+
 </body>
 </html>
