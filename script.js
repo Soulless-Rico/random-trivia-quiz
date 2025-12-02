@@ -1,6 +1,14 @@
-const questionContainer = document.getElementById('question-container');
+function hideElement(containerId) {
+    document.getElementById(containerId).classList.add('hidden');
+    console.log(`The element '${containerId}' was made hidden.`)
+}
 
-async function fetctQuestions() {
+function showElement(containerId) {
+    document.getElementById(containerId).classList.remove('hidden');
+    console.log(`The element '${containerId}' was made visible.`);
+}
+
+async function fetchQuestions() {
     const response = await fetch('https://opentdb.com/api.php?amount=10');  
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -26,22 +34,58 @@ async function fetctQuestions() {
 }
 
 async function loadQuestions() {
-    try {
-        const questions = await fetchQuestions();
-        console.log(`Success! Loaded questions: ${questions}}`);
 
-        const questionsArray = questions.results;
-        if (questionsArray.lenght > 0) {
+    const quizContainer = document.getElementById('quiz-container');
+    const loadingState = document.getElementById('loading-state');
+
+    try {
+        const questionsObject = await fetchQuestions();
+        const questionsArray = questionsObject.results;
+
+        console.log(`Success! Loaded questions: ${questionsObject}}`);
+
+        if (!questionsArray.length) {
             throw new Error('Questions array is empty.')
         }
 
+        hideElement('loading-state');
+        showElement(quizContainer.id);
+
+        quizContainer.innerHTML = '';
+
+        questionsArray.forEach((question, index) => {
+            
+            const decodedQuestion = decodeHTML(question.question);
+            const decodedAnswer = decodeHTML(question.correct_answer);
+
+            const questionHTML = `
+                <div class="question-card">
+                    <p class="question-number">Question ${index + 1} of ${questionsArray.length} - ${question.category}</p>
+                    <p class="question-text">${decodedQuestion}</p>
+
+                    <div class="answers-grid">
+                        <button class="answer-btn-correct">${decodedAnswer}</button>
+                    </div>
+                </div>
+            `;
+            quizContainer.innerHTML += questionHTML;
+        });
+
     } catch (error) {
         console.error(`An error occured during data loading: ${error}`);
+        hideElement('loading-state');
+        showElement(quizContainer.id);
+
+        quizContainer.innerHTML =  `
+            <div class="question-card" style="border-color:#ff3333; box-shadow: 0 0 30px rgba(255, 51, 51, 0.5);">
+                <p class="question-text" style="color: #ff3333;">Error loading quiz: ${error.message}</p>
+            </div>
+        `;
     }
 }
 
 function decodeHTML(html) {
-    /**
+    /** 
      * Takes a string with HTML entities (like &quot;) and converts them to 
      * their corresponding characters (like ").
      */
