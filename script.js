@@ -1,3 +1,16 @@
+
+    
+
+
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 function hideElement(containerId) {
     document.getElementById(containerId).classList.add('hidden');
     console.log(`The element '${containerId}' was made hidden.`)
@@ -37,6 +50,7 @@ async function loadQuestions() {
 
     const quizContainer = document.getElementById('quiz-container');
     const loadingState = document.getElementById('loading-state');
+    
 
     try {
         const questionsObject = await fetchQuestions();
@@ -57,21 +71,69 @@ async function loadQuestions() {
             
             const decodedQuestion = decodeHTML(question.question);
             const decodedAnswer = decodeHTML(question.correct_answer);
-
+            const incorrectAnswers = question.incorrect_answers.map(decodeHTML);
+            
+            let allAnswers = [decodedAnswer, ...incorrectAnswers];
+            allAnswers = shuffleArray(allAnswers);
+            let answersHTML = '';
+            allAnswers.forEach(answer => {
+      const isCorrect = (answer === decodedAnswer) ? 'data-correct="true"' : '';
+      answersHTML += `<button class="answer-btn" ${isCorrect}>${answer}</button>`;
+})
+               
             const questionHTML = `
                 <div class="question-card">
                     <p class="question-number">Question ${index + 1} of ${questionsArray.length} - ${question.category}</p>
                     <p class="question-text">${decodedQuestion}</p>
 
                     <div class="answers-grid">
-                        <button class="answer-btn-correct">${decodedAnswer}</button>
+                        ${answersHTML}
                     </div>
                 </div>
             `;
             quizContainer.innerHTML += questionHTML;
         });
 
-    } catch (error) {
+        
+
+
+function handleAnswerClick(event) {
+    const selectedButton = event.target;
+    const isCorrect = selectedButton.hasAttribute('data-correct');
+    
+    // Zisti ktorá question-card bola zvolená
+    const questionCard = selectedButton.closest('.question-card');
+    const answerButtons = questionCard.querySelectorAll('.answer-btn');
+
+   
+    answerButtons.forEach(button => {
+        button.disabled = true; // Zakaže všetky tlačidlá
+        if (button.getAttribute('data-correct')) {
+            button.classList.add('correct'); // Vždy ukáže správnu odpoveď
+        }
+    });
+
+    
+    if (isCorrect) {
+        
+        selectedButton.classList.add('correct');
+    } else {
+        selectedButton.classList.add('incorrect');
+    }
+
+    
+}
+
+
+const answerButtons = quizContainer.querySelectorAll('.answer-btn');
+answerButtons.forEach(button => {
+    button.addEventListener('click', handleAnswerClick);
+});
+
+
+
+    }
+     catch (error) {
         console.error(`An error occured during data loading: ${error}`);
         hideElement('loading-state');
         showElement(quizContainer.id);
