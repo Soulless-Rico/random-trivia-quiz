@@ -1,6 +1,6 @@
-
-    
-
+let score = 0;
+let currentQuestionIndex = 0;
+const progressLišta = document.querySelector('.progress-fill');
 
 
 function shuffleArray(array) {
@@ -51,7 +51,6 @@ async function loadQuestions() {
     const quizContainer = document.getElementById('quiz-container');
     const loadingState = document.getElementById('loading-state');
     
-
     try {
         const questionsObject = await fetchQuestions();
         const questionsArray = questionsObject.results;
@@ -75,11 +74,12 @@ async function loadQuestions() {
             
             let allAnswers = [decodedAnswer, ...incorrectAnswers];
             allAnswers = shuffleArray(allAnswers);
+
             let answersHTML = '';
             allAnswers.forEach(answer => {
-      const isCorrect = (answer === decodedAnswer) ? 'data-correct="true"' : '';
-      answersHTML += `<button class="answer-btn" ${isCorrect}>${answer}</button>`;
-})
+            const isCorrect = (answer === decodedAnswer) ? 'data-correct="true"' : '';
+            answersHTML += `<button class="answer-btn" ${isCorrect}>${answer}</button>`;
+            })  
                
             const questionHTML = `
                 <div class="question-card">
@@ -92,11 +92,9 @@ async function loadQuestions() {
                 </div>
             `;
             quizContainer.innerHTML += questionHTML;
-        });
+});
 
         
-
-
 function handleAnswerClick(event) {
     const selectedButton = event.target;
     const isCorrect = selectedButton.hasAttribute('data-correct');
@@ -105,33 +103,41 @@ function handleAnswerClick(event) {
     const questionCard = selectedButton.closest('.question-card');
     const answerButtons = questionCard.querySelectorAll('.answer-btn');
 
-   
     answerButtons.forEach(button => {
         button.disabled = true; // Zakaže všetky tlačidlá
         if (button.getAttribute('data-correct')) {
             button.classList.add('correct'); // Vždy ukáže správnu odpoveď
         }
+        const progressPercent = (currentQuestionIndex / questionsArray.length) * 100;
+        progressLišta.style.width = progressPercent + '%';
     });
-
-    
     if (isCorrect) {
         
         selectedButton.classList.add('correct');
+        score++;
+        currentQuestionIndex++;
     } else {
         selectedButton.classList.add('incorrect');
+        currentQuestionIndex++;
     }
 
-    
+    if (currentQuestionIndex === questionsArray.length) {
+        hideElement(quizContainer.id);
+        const resultsTitle = document.getElementById('results-title');
+        resultsTitle.innerHTML = `
+            <h2 class="results-badge">${score} / ${questionsArray.length}</h2>
+            <h3 class="results-message">Congratulations, you have achieved the end of the most sigma quiz of all time</h3>
+            <button id="restart-quiz-btn" class="restart-btn sigma-btn" onclick="restartQuiz()">Restart Quiz</button>
+        `;
+        hideElement('progress-bar');
+        showElement(resultsTitle.id);
+    }
 }
 
-
-const answerButtons = quizContainer.querySelectorAll('.answer-btn');
+    const answerButtons = quizContainer.querySelectorAll('.answer-btn');
 answerButtons.forEach(button => {
     button.addEventListener('click', handleAnswerClick);
 });
-
-
-
     }
      catch (error) {
         console.error(`An error occured during data loading: ${error}`);
@@ -156,5 +162,10 @@ function decodeHTML(html) {
 
     return text.value;
 }
+
+function restartQuiz() {
+    window.location.reload();
+}
+
 
 loadQuestions();
